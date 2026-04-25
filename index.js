@@ -1,158 +1,191 @@
 /* 
-  1º Imports;
-  2º export default;
-  3º variáveis e constantes;
-  4º funções;
-  5º return;
-  6º StyleSheet.
+  1º Imports → onde trazemos tudo que vamos usar
+  2º export default → componente principal do app
+  3º variáveis/estados → dados que mudam durante o uso
+  4º funções → ações do app (tirar foto, postar, etc)
+  5º return → o que aparece na tela
+  6º StyleSheet → estilos (visual do app)
 */
 
-import React, {
-  useState,
-} from 'react'; /* importando componentes da biblioteca react */
+/* ===== 1º IMPORTS ===== */
+
+// Importando o React e o useState (serve pra guardar dados que mudam)
+import React, { useState } from 'react';
+
+// Importando componentes visuais do React Native (tipo HTML do mobile)
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  FlatList,
-} from 'react-native'; /* importando componentes da biblioteca react-native */
+  View,              // funciona como uma <div>
+  Text,              // usado para textos
+  StyleSheet,        // para criar estilos (tipo CSS)
+  TextInput,         // campo de digitação
+  TouchableOpacity,  // botão clicável
+  Image,             // mostrar imagens
+  FlatList,          // lista otimizada (tipo feed)
+} from 'react-native';
 
-import * as ImagePicker from 'expo-image-picker'; /* importando componentes da biblioteca expo-image-picker*/
+// Importando biblioteca para acessar a câmera do celular
+import * as ImagePicker from 'expo-image-picker';
 
-/* iniciando a função padrão que será chamada na renderização do aplicativo */
+
+/* ===== 2º COMPONENTE PRINCIPAL ===== */
+
+// Essa é a função principal do app (tudo começa aqui)
 export default function App() {
-  const [nome, setNome] = useState(''); /* criando um estado para o nome */
-  const [foto, setFoto] = useState(null); /* criando um estado para a foto */
-  const [posts, setPosts] = useState([]); /* criando um estado para os posts */
 
+  /* ===== 3º ESTADOS ===== */
+
+  // Guarda o nome digitado pelo usuário
+  const [nome, setNome] = useState('');
+
+  // Guarda a foto tirada (começa vazio)
+  const [foto, setFoto] = useState(null);
+
+  // Guarda todos os posts (lista/feed)
+  const [posts, setPosts] = useState([]);
+
+
+  /* ===== 4º FUNÇÕES ===== */
+
+  // Função para tirar foto
   async function tirarFoto() {
 
-    /* Pegar autirazação do usuário para usar a camera */
+    // Pede permissão para usar a câmera
     const permissao = await ImagePicker.requestCameraPermissionsAsync();
 
-    /* Verificando se permissão foi concedida */
-    if(!permissao.granted) {
+    // Se o usuário negar, mostra aviso e para tudo
+    if (!permissao.granted) {
       alert("Permissão negada");
       return;
     }
 
-    /* Carregando a camera */
+    // Abre a câmera do celular
     const resultado = await ImagePicker.launchCameraAsync();
 
-    /* Verficicando se a operação foi cancelada caso não salva a variável foto */
-    if(!resultado.canceled){
+    // Se o usuário NÃO cancelou a foto
+    if (!resultado.canceled) {
+
+      // Salva o caminho da imagem no estado "foto"
       setFoto(resultado.assets[0].uri);
-      /* 
-        resultado -> variável que guarda todos os     atributos da foto que foi tirada
-        resultado.assets[0] -> atributo da variável resultado que contem o valor da foto
-        resultado.assets[0].uri -> caminho e conteúdo da onde a variável foi salva
+
+      /*
+        Explicando:
+        resultado → objeto com dados da foto
+        assets[0] → primeira imagem capturada
+        uri → caminho da imagem no celular
       */
     }
   }
 
-  /* Função para postar a foto no feed*/
-  function postar(){
-    /* Verificar se existe nome e foto carregados */
-    if(nome === "" || foto === null) {
+
+  // Função para postar no feed
+  function postar() {
+
+    // Verifica se o usuário digitou nome e tirou foto
+    if (nome === "" || foto === null) {
       alert("Digite o nome e tire uma foto!");
       return;
     }
 
-    /* Criando o novo Post */
+    // Criando um novo post
     const novoPost = {
-      id: Date.now().toString(),
-      nome: nome,
-      imagem: foto
+      id: Date.now().toString(), // ID único baseado no tempo
+      nome: nome,                // nome do usuário
+      imagem: foto               // foto tirada
     };
 
-    /* Salvando o post */
+    // Adiciona o novo post no início da lista
     setPosts([novoPost, ...posts]);
 
-    /* Retornando as variaveis de nome e foto para seu padrão original */
+    // Limpa os campos após postar
     setNome("");
     setFoto(null);
   }
 
-  function renderizarItem ({item}){
-    return(
+
+  // Função que desenha cada item da lista (cada post)
+  function renderizarItem({ item }) {
+    return (
       <View style={styles.card}>
+        
+        {/* Nome do usuário */}
         <Text style={styles.usuario}>
           {item.nome}
         </Text>
-        <Image 
-          source={{uri: item.imagem}}
+
+        {/* Imagem do post */}
+        <Image
+          source={{ uri: item.imagem }}
           style={styles.imagemFeed}
         />
       </View>
-    )
+    );
   }
 
-  /* Onde ocorre a renderização */
-  /* Só aceita uma View por return */
+
+  /* ===== 5º RETURN (TELA) ===== */
+
   return (
     <View style={styles.container}>
-      {' '}
-      {/* View é a div do react */}
-      <Text style={styles.titulo}> Meu Feed </Text> {/* usado para escrer textos.
-      Textos fora do Text são consideros erros!! */}
-        {/* placeholder é o texto que fica preenchido quando não há valor no input */}
-        {/* valor que o input tem */}
-        {/* Chamada quando ocorre atualização de textos no input e chama a função setNome */}
+      
+      {/* Título */}
+      <Text style={styles.titulo}>Meu Feed</Text>
+
+      {/* Campo para digitar o nome */}
       <TextInput
         style={styles.input}
         placeholder="Digite o seu nome"
-         value={
-          nome
-        } 
-        onChangeText={
-          setNome
-        } 
-      />{' '}
-      {/* São tags para inserir valores. */ /* Criar um Botão para tirar foto */}
+        value={nome}              // valor atual
+        onChangeText={setNome}    // atualiza o estado
+      />
+
+      {/* Botão para tirar foto */}
       <TouchableOpacity style={styles.botao} onPress={tirarFoto}>
         <Text style={styles.textoBotao}>Tirar foto</Text>
       </TouchableOpacity>
 
-      {/* Verifica se há fotos carregadas se há mostra o preview da foto */}
+      {/* Mostra a foto tirada (preview) se existir */}
       {
         foto && (
-          <Image 
-            source={{uri:foto}}
+          <Image
+            source={{ uri: foto }}
             style={styles.preview}
           />
         )
       }
 
-      {/* Botão de postar */}
+      {/* Botão para postar */}
       <TouchableOpacity
         style={styles.botaoPostar}
         onPress={postar}
       >
-        <Text style={styles.textoBotao}> Postar </Text>
+        <Text style={styles.textoBotao}>Postar</Text>
       </TouchableOpacity>
 
-      {/* Lista de Posts (Feed)*/}
-      <FlatList 
-        data={posts}
-        keyExtractor={(item) => item.id}
-        renderItem={renderizarItem}
+      {/* Lista de posts (feed) */}
+      <FlatList
+        data={posts}                          // dados da lista
+        keyExtractor={(item) => item.id}      // chave única
+        renderItem={renderizarItem}           // como renderizar
       />
+
     </View>
   );
 }
 
-{/* inicia o StyleSheet */}
-// estilos do app (tema gamer RGB)
+
+/* ===== 6º STYLE (VISUAL DO APP) ===== */
+
+// Aqui ficam os estilos (tipo CSS)
 const styles = StyleSheet.create({
+
+  // Container principal
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#0f0f1a', // fundo escuro estilo setup gamer
+    backgroundColor: '#0f0f1a', // fundo escuro estilo gamer
   },
 
+  // Título
   titulo: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -162,44 +195,49 @@ const styles = StyleSheet.create({
     color: '#00ffff', // azul neon
     textShadowColor: '#8a2be2', // brilho roxo
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10, // efeito glow (tipo LED)
+    textShadowRadius: 10, // efeito glow
   },
 
+  // Campo de texto
   input: {
-    backgroundColor: '#1a1a2e', // fundo do campo
+    backgroundColor: '#1a1a2e',
     padding: 12,
     borderRadius: 10,
     marginBottom: 10,
-    color: '#fff', // texto branco
+    color: '#fff',
     borderWidth: 1,
-    borderColor: '#8a2be2', // borda roxa neon
+    borderColor: '#8a2be2',
   },
 
+  // Botão tirar foto
   botao: {
-    backgroundColor: '#8a2be2', // botão roxo RGB
+    backgroundColor: '#8a2be2',
     padding: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 15,
-    elevation: 10, // sombra (Android)
+    elevation: 10,
   },
 
+  // Texto dos botões
   textoBotao: {
     fontWeight: 'bold',
-    color: '#fff', // texto branco
+    color: '#fff',
   },
 
+  // Preview da imagem
   preview: {
     width: "100%",
     height: 220,
     borderRadius: 10,
     marginBottom: 15,
     borderWidth: 2,
-    borderColor: '#00ffff', // borda azul neon
+    borderColor: '#00ffff',
   },
 
+  // Botão postar
   botaoPostar: {
-    backgroundColor: '#00ff88', // verde destaque (ação)
+    backgroundColor: '#00ff88',
     padding: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -207,27 +245,30 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
 
+  // Card do post
   card: {
-    backgroundColor: '#1a1a2e', // fundo do post
+    backgroundColor: '#1a1a2e',
     padding: 10,
     borderRadius: 12,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#00ffff', // borda neon
+    borderColor: '#00ffff',
   },
 
+  // Nome do usuário
   usuario: {
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
-    color: '#00ffff', // nome em azul neon
+    color: '#00ffff',
   },
 
+  // Imagem no feed
   imagemFeed: {
     width: "100%",
     height: 250,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#8a2be2', // borda roxa na imagem
+    borderColor: '#8a2be2',
   }
 });
